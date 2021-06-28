@@ -2,22 +2,18 @@ package com.ipiecoles.batch.csvImport;
 
 import com.ipiecoles.batch.dto.CommuneDto;
 import com.ipiecoles.batch.exception.CommuneCSVException;
-import com.ipiecoles.batch.exception.NetworkException;
-import com.ipiecoles.batch.model.Commune;
+import com.ipiecoles.batch.entity.Commune;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.step.skip.AlwaysSkipItemSkipPolicy;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
@@ -27,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -100,15 +95,15 @@ public class CommunesImportBatch {
                 .build();
     }
 
-    @Bean
-    public JpaPagingItemReader<Commune> communesMissingCoordinatesJpaItemReader() {
-        return new JpaPagingItemReaderBuilder<Commune>()
-                .name("communesMissingCoordinatesJpaItemReader")
-                .entityManagerFactory(entityManagerFactory)
-                .pageSize(10)
-                .queryString("from Commune c where c.latitude is null or c.longitude is null")
-                .build();
-    }
+//    @Bean
+//    public JpaPagingItemReader<Commune> communesMissingCoordinatesJpaItemReader() {
+//        return new JpaPagingItemReaderBuilder<Commune>()
+//                .name("communesMissingCoordinatesJpaItemReader")
+//                .entityManagerFactory(entityManagerFactory)
+//                .pageSize(10)
+//                .queryString("from Commune c where c.latitude is null or c.longitude is null")
+//                .build();
+//    }
 
     @Bean
     public JpaItemWriter<Commune> writerJPA(){
@@ -153,31 +148,31 @@ public class CommunesImportBatch {
                 .build();
     }
 
-    @Bean
-    public Step stepImportCSVNoGps(JpaItemWriter<Commune> writerJpa){
-        FixedBackOffPolicy policy = new FixedBackOffPolicy();
-        policy.setBackOffPeriod(2000);
-        return stepBuilderFactory.get("importCSVNoGps")
-                .<Commune, Commune> chunk(chunk)
-                .reader(communesMissingCoordinatesJpaItemReader())
-                .processor(communeAddGpsProcessor())
-                .writer(writerJpa)
-                .faultTolerant()
-                .retryLimit(5)
-                .retry(NetworkException.class)
-                .backOffPolicy(policy)
-                .build();
-    }
-
-    @Bean
-    public Job importCsvJob(Step stepImportCSV, Step stepImportCSVNoGps) {
-        return jobBuilderFactory.get("importCsvJob")
-                .incrementer(new RunIdIncrementer())
-                .flow(stepHelloWorld())
-                .next(stepImportCSV)
-                .on("COMPLETED_WITH_MISSING_COORDINATES").to(stepImportCSVNoGps)
-                .end()
-                .build();
-    }
+//    @Bean
+//    public Step stepImportCSVNoGps(JpaItemWriter<Commune> writerJpa){
+//        FixedBackOffPolicy policy = new FixedBackOffPolicy();
+//        policy.setBackOffPeriod(2000);
+//        return stepBuilderFactory.get("importCSVNoGps")
+//                .<Commune, Commune> chunk(chunk)
+//                .reader(communesMissingCoordinatesJpaItemReader())
+//                .processor(communeAddGpsProcessor())
+//                .writer(writerJpa)
+//                .faultTolerant()
+//                .retryLimit(5)
+//                .retry(NetworkException.class)
+//                .backOffPolicy(policy)
+//                .build();
+//    }
+//
+//    @Bean
+//    public Job importCsvJob(Step stepImportCSV, Step stepImportCSVNoGps) {
+//        return jobBuilderFactory.get("importCsvJob")
+//                .incrementer(new RunIdIncrementer())
+//                .flow(stepHelloWorld())
+//                .next(stepImportCSV)
+//                .on("COMPLETED_WITH_MISSING_COORDINATES").to(stepImportCSVNoGps)
+//                .end()
+//                .build();
+//    }
 
 }

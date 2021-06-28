@@ -1,9 +1,7 @@
 package com.ipiecoles.batch.csvImport;
 
-import com.ipiecoles.batch.dto.CommuneDto;
-import com.ipiecoles.batch.model.Commune;
+import com.ipiecoles.batch.entity.Commune;
 import com.ipiecoles.batch.utils.OpenStreetMapUtils;
-import org.apache.commons.text.WordUtils;
 import org.springframework.batch.item.ItemProcessor;
 
 import java.util.Map;

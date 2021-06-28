@@ -1,6 +1,6 @@
 package com.ipiecoles.batch.csvImport;
 
-import com.ipiecoles.batch.model.Commune;
+import com.ipiecoles.batch.entity.Commune;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.SkipListener;
